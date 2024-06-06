@@ -1,0 +1,153 @@
+---
+title: "Linear Regression"
+author: "Akarin Luckanasub"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### **Introduction**
+##### This document demonstrates how to perform both simple and multiple linear regression on the mtcars dataset using the dplyr library for data manipulation. The goal is to predict the miles per gallon (mpg) based on various predictor variables.
+
+## **Simple Linear Regression**
+##### Start with a simple linear regression where mpg is predicted based on hp (horsepower).
+
+### **Fit the Model**
+
+```{r}
+# Simple linear regression
+lmfit <- lm(mpg ~ hp, data = mtcars)
+
+# Summary of the model
+summary(lmfit)
+```
+
+### **Predictions**
+##### Make predictions using the fitted model.
+
+```{r}
+# Prediction with a specific horsepower value
+predicted_mpg_200hp <- lmfit$coefficients[[1]] + lmfit$coefficients[[2]] * 200
+predicted_mpg_200hp
+
+# Predict for multiple values
+newcar <- data.frame(
+  hp = c(250, 320, 400, 410, 450)
+)
+
+# Predict mpg for the new values
+newcar$mpg_predicted <- predict(lmfit, newdata = newcar)
+
+# Display the predictions
+newcar
+```
+
+## **Multiple Linear Regression**
+##### Extend the model to include additional predictor variables: wt (weight) and am (transmission).
+
+### **Fit the Model**
+
+```{r}
+# Multiple linear regression
+lmfitv2 <- lm(mpg ~ hp + wt + am, data = mtcars)
+
+# Coefficients
+coefs <- coef(lmfitv2)
+coefs
+
+```
+
+### **Full Model**
+##### build a full model using all predictors except gear.
+
+```{r}
+# Full model with all predictors except gear
+lmfitfull <- lm(mpg ~ . - gear, data = mtcars)
+
+# Predictions using the full model
+mtcars$predicted <- predict(lmfitfull)
+```
+
+### **Calculate RMSE**
+##### Calculate the Root Mean Squared Error (RMSE) for the model.
+
+```{r}
+# Squared error
+sq_error <- (mtcars$mpg - mtcars$predicted) ^ 2
+
+# RMSE
+rmse <- sqrt(mean(sq_error))
+rmse
+```
+
+## **Full Modelling**
+##### Split the data into training and test sets, train the model, and evaluate its performance.
+
+### **Split the Data**
+
+```{r}
+# Set seed for reproducibility
+set.seed(42)
+
+# Number of rows in the dataset
+n <- nrow(mtcars)
+
+# Generate random indices for training data (80% of the data)
+id <- sample(1:n, size = n * 0.8)
+
+# Create training and test datasets
+train_data <- mtcars[id, ]
+test_data <- mtcars[-id, ]
+
+```
+
+### **Train the Model**
+
+```{r}
+# Train the model on training data
+model1 <- lm(mpg ~ hp + wt + am + disp, data = train_data)
+
+# Predictions on training data
+predicted_train_model1 <- predict(model1)
+
+# Calculate training error
+error_train_model1 <- train_data$mpg - predicted_train_model1
+
+# Calculate RMSE for training data
+rmse_train_model1 <- sqrt(mean((error_train_model1) ^ 2))
+rmse_train_model1
+
+```
+
+### **Test the Model**
+
+```{r}
+# Predictions on test data
+predicted_test_model1 <- predict(model1, newdata = test_data)
+
+# Calculate test error
+error_test_model1 <- test_data$mpg - predicted_test_model1
+
+# Calculate RMSE for test data
+rmse_test_model1 <- sqrt(mean((error_test_model1) ^ 2))
+rmse_test_model1
+
+```
+
+### **Print Results**
+
+```{r}
+# Print RMSE results
+cat("RMSE Train:", rmse_train_model1, "\n")
+cat("RMSE Test:", rmse_test_model1)
+
+```
+
+### **Conclusion**
+##### This document demonstrated the process of performing both simple and multiple linear regression on the mtcars dataset. The RMSE values for the training and test datasets provide a measure of the model's performance.
+
+
+
